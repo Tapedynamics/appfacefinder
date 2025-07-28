@@ -7,7 +7,7 @@ import sqlite3
 from flask import Flask, request, render_template, redirect, url_for, flash, jsonify
 from werkzeug.utils import secure_filename
 import uuid
-from database import init_db, add_face_record, get_photos_by_face_ids
+from database import init_db, add_face_record, get_photos_by_face_ids, get_all_photos
 from config import Config
 
 app = Flask(__name__)
@@ -183,3 +183,13 @@ def gallery():
     """Display the client's gallery of photos"""
     photo_urls = request.args.getlist('photos')
     return render_template('gallery.html', photos=photo_urls)
+@app.route('/admin/all_photos')
+def all_photos_admin():
+    """Display all uploaded photos for the admin."""
+    try:
+        all_photo_urls = get_all_photos()
+        return render_template('all_photos.html', photos=all_photo_urls)
+    except Exception as e:
+        print(f"ERROR displaying all photos: {e}")
+        flash(f'Error loading photos: {str(e)}')
+        return redirect(url_for('admin')) # Reindirizza all'admin panel in caso di errore
