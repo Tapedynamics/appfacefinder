@@ -97,8 +97,24 @@ def get_photos_by_face_ids(face_ids):
         if conn:
             conn.close()
     return photos
+def get_all_photos():
+    conn = None
+    photos = []
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        # Seleziona tutti gli URL delle foto, puoi anche ordinare se vuoi (es. ORDER BY id DESC per le più recenti)
+        cur.execute("SELECT photo_url FROM faces ORDER BY id DESC;")
+        photos = [row[0] for row in cur.fetchall()]
+    except psycopg2.Error as e:
+        print(f"Error getting all photos: {e}")
+    finally:
+        if conn:
+            conn.close()
+    return photos
 
 # Questo blocco opzionale è per testare l'inizializzazione del DB localmente
 if __name__ == '__main__':
     init_db()
     print("Database initialization script executed locally.")
+
