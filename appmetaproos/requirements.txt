@@ -1,4 +1,5 @@
 Flask
 boto3
 Pillow
-gunicorn
+werkzeug
+gunicorn  # <-- Molto importante per il deploy in produzione
