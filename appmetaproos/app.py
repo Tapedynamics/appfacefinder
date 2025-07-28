@@ -213,3 +213,13 @@ def admin():
     
     # Se l'utente è loggato, mostra il pannello admin completo
     return render_template('admin.html', logged_in=True) # Mostra la pagina admin completa
+
+# app.py (aggiungi questa nuova route)
+
+# ... (le tue altre route) ...
+
+@app.route('/admin/logout', methods=['POST'])
+def admin_logout():
+    session.pop('logged_in_admin', None) # Rimuove la variabile di sessione
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('admin')) # Reindirizza alla pagina di login dell'admin
