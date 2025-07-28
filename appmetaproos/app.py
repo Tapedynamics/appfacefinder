@@ -31,11 +31,6 @@ def index():
     """Main page for clients to login with facial recognition"""
     return render_template('index.html')
 
-@app.route('/admin')
-def admin():
-    """Admin panel for uploading photos"""
-    return render_template('admin.html')
-
 @app.route('/admin/upload', methods=['POST'])
 def upload_photos():
     """Handle photo uploads from the admin panel"""
