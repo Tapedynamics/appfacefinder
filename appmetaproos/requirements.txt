@@ -3,3 +3,4 @@ boto3
 Pillow
 werkzeug
 gunicorn  # <-- Molto importante per il deploy in produzione
+psycopg2-binary
