@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - All Uploaded Photos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Stili CSS di base per la galleria */
+        .gallery-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 20px auto;
+            background-color: #333; /* Scurisco per contrasto */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .gallery-item {
+            width: 100%;
+            height: 200px; /* Altezza fissa per le immagini */
+            overflow: hidden; /* Nasconde l'eccesso */
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Copre l'area mantenendo le proporzioni */
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        .gallery-item img:hover {
+            transform: scale(1.05); /* Effetto hover leggero */
+        }
+        .page-title {
+            text-align: center;
+            color: #eee;
+            margin-top: 30px;
+        }
+        .back-button {
+            display: block;
+            width: fit-content;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .back-button:hover {
+            background-color: #0056b3;
+        }
+        .no-photos-message {
+            text-align: center;
+            color: #ccc;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body style="background-color: #222; color: #f8f8f8; font-family: sans-serif;">
+    <h1 class="page-title">All Uploaded Photos (Admin)</h1>
+
+    <a href="{{ url_for('admin') }}" class="back-button">Back to Admin Panel</a>
+
+    {% if photos %}
+        <div class="gallery-container">
+            {% for photo_url in photos %}
+                <div class="gallery-item">
+                    <img src="{{ photo_url }}" alt="Uploaded Photo">
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="no-photos-message">No photos have been uploaded yet.</p>
+    {% endif %}
+</body>
+</html>
