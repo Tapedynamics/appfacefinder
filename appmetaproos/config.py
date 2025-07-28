@@ -21,3 +21,5 @@ class Config:
     # Create temp directory if it doesn't exist
     if not os.path.exists(TEMP_DIR):
         os.makedirs(TEMP_DIR)
+    
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'admin') # CAMBIA QUESTA PASSWORD IN UNA FORTE!
