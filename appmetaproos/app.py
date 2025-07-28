@@ -4,14 +4,14 @@ import mimetypes
 import os
 import boto3
 import sqlite3
-from flask import Flask, request, render_template, redirect, url_for, flash, jsonify
+from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, session
 from werkzeug.utils import secure_filename
 import uuid
 from database import init_db, add_face_record, get_photos_by_face_ids, get_all_photos
 from config import Config
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-change-in-production'
+app.secret_key = Config.SECRET_KEY
 
 # Initialize the database
 init_db()
@@ -183,6 +183,7 @@ def gallery():
     """Display the client's gallery of photos"""
     photo_urls = request.args.getlist('photos')
     return render_template('gallery.html', photos=photo_urls)
+    
 @app.route('/admin/all_photos')
 def all_photos_admin():
     """Display all uploaded photos for the admin."""
@@ -193,3 +194,22 @@ def all_photos_admin():
         print(f"ERROR displaying all photos: {e}")
         flash(f'Error loading photos: {str(e)}')
         return redirect(url_for('admin')) # Reindirizza all'admin panel in caso di errore
+        
+@app.route('/admin', methods=['GET', 'POST']) # <--- Modifica qui per accettare GET e POST
+def admin():
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if password == Config.ADMIN_PASSWORD:
+            session['logged_in_admin'] = True # Imposta una variabile di sessione
+            flash('Logged in successfully!', 'success')
+            return redirect(url_for('admin')) # Reindirizza per ricaricare la pagina admin autenticata
+        else:
+            flash('Invalid password', 'danger')
+            return render_template('admin.html', logged_in=False) # Rendi il template con messaggio di errore
+    
+    # Per richieste GET o dopo un login fallito, controlla se l'utente è già loggato
+    if not session.get('logged_in_admin'):
+        return render_template('admin.html', logged_in=False) # Mostra la pagina di login
+    
+    # Se l'utente è loggato, mostra il pannello admin completo
+    return render_template('admin.html', logged_in=True) # Mostra la pagina admin completa
