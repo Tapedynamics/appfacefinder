@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Tua Galleria Privata</title>
+    <style>
+        /* Stili base per rendere la pagina presentabile */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .header {
+            background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .gallery-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+        .photo-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 300px;
+            text-align: center;
+        }
+        .photo-card img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .photo-card .info {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .photo-card .info p {
+            margin: 0;
+            font-weight: 500;
+        }
+        /* Stile per il pulsante di download */
+        .download-btn {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 8px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .download-btn:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <h1>Your Private Photo Gallery</h1>
+        <p>These are your exclusive photos from Alessio Photography</p>
+    </header>
+
+    <div class="gallery-container">
+        {% for photo_url in photos %}
+        <div class="photo-card">
+            <img src="{{ photo_url }}" alt="Foto del cliente">
+            
+            <div class="info">
+                <p>Photo #{{ loop.index }}</p>
+                <a href="{{ photo_url }}" class="download-btn" download>Download</a>
+            </div>
+        </div>
+        {% else %}
+        <p>Nessuna foto trovata per il tuo viso. Prova a scattare un altro selfie.</p>
+        {% endfor %}
+    </div>
+
+</body>
+</html>
