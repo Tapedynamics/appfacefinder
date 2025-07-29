@@ -8,41 +8,18 @@ import uuid
 from database import init_db, add_face_record, get_photos_by_face_ids, get_all_photos, delete_all_face_records
 from config import Config
 
-
-@app.route('/admin', methods=['GET', 'POST'])
-def admin():
-    print(f"--- ADMIN ACCESS ATTEMPT ---")
-    print(f"Request Method: {request.method}")
-    print(f"Current session['logged_in_admin']: {session.get('logged_in_admin')}")
-
-    if request.method == 'POST':
-        password = request.form.get('password')
-        print(f"Submitted Password (first 3 chars): {password[:3]}***") # Per non stampare la password intera
-        print(f"Configured Admin Password (first 3 chars): {Config.ADMIN_PASSWORD[:3]}***")
-        
-        if password == Config.ADMIN_PASSWORD:
-            print("Password match! Setting session['logged_in_admin'] = True")
-            session['logged_in_admin'] = True
-            flash('Logged in successfully!', 'success')
-            return redirect(url_for('admin'))
-        else:
-            print("Password MISMATCH!")
-            flash('Invalid password', 'danger')
-            return render_template('admin.html', logged_in=False)
-    
-    if not session.get('logged_in_admin'):
-        print("Not logged in. Rendering login form.")
-        return render_template('admin.html', logged_in=False)
-    else:
-        print("Already logged in. Rendering full admin panel.")
-        return render_template('admin.html', logged_in=True)
-        
+# ⭐⭐ SOLUZIONE: Assicurati che 'app = Flask(__name__)' sia qui, SUBITO DOPO GLI IMPORT ⭐⭐
+# Questo errore "NameError: name 'app' is not defined" significa che 'app' non è stato creato
+# prima di essere usato dalle route. Deve essere la prima cosa dopo gli import.
 app = Flask(__name__)
-# ⭐⭐ Fondamentale: Imposta la chiave segreta per le sessioni da Config ⭐⭐
-app.secret_key = Config.SECRET_KEY
+app.secret_key = Config.SECRET_KEY # Imposta la chiave segreta da Config
+# ⭐⭐ FINE SOLUZIONE ⭐⭐
 
+# Inizializza il database (creerà la tabella se non esiste)
 init_db()
 
+# Client AWS S3 e Rekognition
+# Le credenziali sono lette automaticamente dalle variabili d'ambiente grazie a boto3
 s3_client = boto3.client('s3', region_name=Config.AWS_REGION)
 rekognition_client = boto3.client('rekognition', region_name=Config.AWS_REGION)
 
@@ -60,24 +37,32 @@ def index():
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
     """Pannello admin per l'upload di foto e gestione."""
+    # ⭐⭐ Stampe di debug per capire il flusso ⭐⭐
+    print(f"--- ADMIN ACCESS ATTEMPT ---")
+    print(f"Request Method: {request.method}")
+    print(f"Current session['logged_in_admin']: {session.get('logged_in_admin')}")
+
     if request.method == 'POST':
         password = request.form.get('password')
-        # ⭐⭐ Verifica la password rispetto a Config.ADMIN_PASSWORD ⭐⭐
+        print(f"Submitted Password (first 3 chars): {password[:3]}***")
+        print(f"Configured Admin Password (first 3 chars): {Config.ADMIN_PASSWORD[:3]}***")
+        
         if password == Config.ADMIN_PASSWORD:
+            print("Password match! Setting session['logged_in_admin'] = True")
             session['logged_in_admin'] = True # Imposta la variabile di sessione
             flash('Logged in successfully!', 'success')
             return redirect(url_for('admin')) # Reindirizza per ricaricare la pagina admin autenticata
         else:
+            print("Password MISMATCH!")
             flash('Invalid password', 'danger')
-            # ⭐⭐ Se la password è sbagliata, mostra di nuovo il form di login ⭐⭐
-            return render_template('admin.html', logged_in=False)
+            return render_template('admin.html', logged_in=False) # Rendi il template con messaggio di errore
     
-    # ⭐⭐ Per richieste GET o dopo un login fallito, controlla se l'utente è già loggato ⭐⭐
     if not session.get('logged_in_admin'):
+        print("Not logged in. Rendering login form.")
         return render_template('admin.html', logged_in=False) # Mostra la pagina di login (form)
-    
-    # ⭐⭐ Se l'utente è loggato, mostra il pannello admin completo ⭐⭐
-    return render_template('admin.html', logged_in=True)
+    else:
+        print("Already logged in. Rendering full admin panel.")
+        return render_template('admin.html', logged_in=True)
 
 # ROUTE LOGOUT ADMIN
 @app.route('/admin/logout', methods=['POST'])
@@ -90,7 +75,6 @@ def admin_logout():
 @app.route('/admin/upload', methods=['POST'])
 def upload_photos():
     """Gestisce l'upload di foto dal pannello admin."""
-    # ⭐⭐ Protezione: Assicurati che l'admin sia loggato prima di permettere l'upload ⭐⭐
     if not session.get('logged_in_admin'):
         flash('Unauthorized access', 'danger')
         return redirect(url_for('admin'))
@@ -219,11 +203,9 @@ def gallery():
     photo_urls = request.args.getlist('photos')
     return render_template('gallery.html', photos=photo_urls)
 
-# ROUTE ADMIN: Visualizza tutte le foto caricate
 @app.route('/admin/all_photos')
 def all_photos_admin():
     """Visualizza tutte le foto caricate per l'admin."""
-    # ⭐⭐ Protezione: Assicurati che l'admin sia loggato ⭐⭐
     if not session.get('logged_in_admin'):
         flash('Unauthorized access', 'danger')
         return redirect(url_for('admin'))
@@ -236,11 +218,9 @@ def all_photos_admin():
         flash(f'Error loading photos: {str(e)}', 'danger')
         return redirect(url_for('admin'))
 
-# ⭐⭐ ROUTE ADMIN: Cancella tutte le foto ⭐⭐
 @app.route('/admin/delete_all_photos', methods=['POST'])
 def delete_all_photos_admin():
     """Gestisce la cancellazione di tutte le foto da S3 e dal database."""
-    # ⭐⭐ Protezione: Assicurati che l'admin sia loggato ⭐⭐
     if not session.get('logged_in_admin'):
         flash('Unauthorized access', 'danger')
         return redirect(url_for('admin'))
