@@ -9,6 +9,7 @@ from database import init_db, add_face_record, get_photos_by_face_ids, get_all_p
 from config import Config
 
 app = Flask(__name__)
+# ⭐⭐ Fondamentale: Imposta la chiave segreta per le sessioni da Config ⭐⭐
 app.secret_key = Config.SECRET_KEY
 
 init_db()
@@ -26,34 +27,41 @@ def index():
     """Pagina principale per i clienti per il login con riconoscimento facciale."""
     return render_template('index.html')
 
+# ROUTE ADMIN PRINCIPALE (con gestione login/logout)
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
     """Pannello admin per l'upload di foto e gestione."""
     if request.method == 'POST':
         password = request.form.get('password')
+        # ⭐⭐ Verifica la password rispetto a Config.ADMIN_PASSWORD ⭐⭐
         if password == Config.ADMIN_PASSWORD:
-            session['logged_in_admin'] = True
+            session['logged_in_admin'] = True # Imposta la variabile di sessione
             flash('Logged in successfully!', 'success')
-            return redirect(url_for('admin'))
+            return redirect(url_for('admin')) # Reindirizza per ricaricare la pagina admin autenticata
         else:
             flash('Invalid password', 'danger')
+            # ⭐⭐ Se la password è sbagliata, mostra di nuovo il form di login ⭐⭐
             return render_template('admin.html', logged_in=False)
     
+    # ⭐⭐ Per richieste GET o dopo un login fallito, controlla se l'utente è già loggato ⭐⭐
     if not session.get('logged_in_admin'):
-        return render_template('admin.html', logged_in=False)
+        return render_template('admin.html', logged_in=False) # Mostra la pagina di login (form)
     
+    # ⭐⭐ Se l'utente è loggato, mostra il pannello admin completo ⭐⭐
     return render_template('admin.html', logged_in=True)
 
+# ROUTE LOGOUT ADMIN
 @app.route('/admin/logout', methods=['POST'])
 def admin_logout():
     """Gestisce il logout dell'admin."""
-    session.pop('logged_in_admin', None)
+    session.pop('logged_in_admin', None) # Rimuove la variabile di sessione
     flash('You have been logged out.', 'info')
-    return redirect(url_for('admin'))
+    return redirect(url_for('admin')) # Reindirizza alla pagina di login dell'admin
 
 @app.route('/admin/upload', methods=['POST'])
 def upload_photos():
     """Gestisce l'upload di foto dal pannello admin."""
+    # ⭐⭐ Protezione: Assicurati che l'admin sia loggato prima di permettere l'upload ⭐⭐
     if not session.get('logged_in_admin'):
         flash('Unauthorized access', 'danger')
         return redirect(url_for('admin'))
@@ -182,9 +190,11 @@ def gallery():
     photo_urls = request.args.getlist('photos')
     return render_template('gallery.html', photos=photo_urls)
 
+# ROUTE ADMIN: Visualizza tutte le foto caricate
 @app.route('/admin/all_photos')
 def all_photos_admin():
     """Visualizza tutte le foto caricate per l'admin."""
+    # ⭐⭐ Protezione: Assicurati che l'admin sia loggato ⭐⭐
     if not session.get('logged_in_admin'):
         flash('Unauthorized access', 'danger')
         return redirect(url_for('admin'))
@@ -197,9 +207,11 @@ def all_photos_admin():
         flash(f'Error loading photos: {str(e)}', 'danger')
         return redirect(url_for('admin'))
 
+# ⭐⭐ ROUTE ADMIN: Cancella tutte le foto ⭐⭐
 @app.route('/admin/delete_all_photos', methods=['POST'])
 def delete_all_photos_admin():
     """Gestisce la cancellazione di tutte le foto da S3 e dal database."""
+    # ⭐⭐ Protezione: Assicurati che l'admin sia loggato ⭐⭐
     if not session.get('logged_in_admin'):
         flash('Unauthorized access', 'danger')
         return redirect(url_for('admin'))
