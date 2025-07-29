@@ -1,3 +1,5 @@
+# database.py
+
 import os
 import psycopg2
 from urllib.parse import urlparse
@@ -113,6 +115,44 @@ def delete_all_face_records():
     finally:
         if conn:
             conn.close()
+
+# ⭐⭐ NUOVE FUNZIONI PER LA SEZIONE VOLTI ADMIN ⭐⭐
+
+def get_all_unique_face_ids_with_counts():
+    """Recupera tutti i face_id unici e il conteggio delle foto associate a ciascuno."""
+    conn = None
+    faces_data = []
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        # Contiamo quante volte ogni face_id appare (quindi quante foto sono collegate)
+        cur.execute('SELECT face_id, COUNT(photo_url) FROM faces GROUP BY face_id ORDER BY face_id;')
+        faces_data = cur.fetchall()
+    except psycopg2.Error as e:
+        print(f"Error getting all unique face IDs with counts: {e}")
+    finally:
+        if conn:
+            conn.close()
+    # Restituisce una lista di tuple: [(face_id, count), ...]
+    return faces_data
+
+def get_photos_by_single_face_id(face_id):
+    """Recupera tutte le URL delle foto associate a un singolo face_id."""
+    conn = None
+    urls = []
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT DISTINCT photo_url FROM faces WHERE face_id = %s ORDER BY photo_url;', (face_id,))
+        urls = [row[0] for row in cur.fetchall()]
+    except psycopg2.Error as e:
+        print(f"Error getting photos by single face ID {face_id}: {e}")
+    finally:
+        if conn:
+            conn.close()
+    return urls
+
+# ⭐⭐ FINE NUOVE FUNZIONI ⭐⭐
 
 if __name__ == '__main__':
     init_db()
