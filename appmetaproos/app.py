@@ -8,6 +8,35 @@ import uuid
 from database import init_db, add_face_record, get_photos_by_face_ids, get_all_photos, delete_all_face_records
 from config import Config
 
+
+@app.route('/admin', methods=['GET', 'POST'])
+def admin():
+    print(f"--- ADMIN ACCESS ATTEMPT ---")
+    print(f"Request Method: {request.method}")
+    print(f"Current session['logged_in_admin']: {session.get('logged_in_admin')}")
+
+    if request.method == 'POST':
+        password = request.form.get('password')
+        print(f"Submitted Password (first 3 chars): {password[:3]}***") # Per non stampare la password intera
+        print(f"Configured Admin Password (first 3 chars): {Config.ADMIN_PASSWORD[:3]}***")
+        
+        if password == Config.ADMIN_PASSWORD:
+            print("Password match! Setting session['logged_in_admin'] = True")
+            session['logged_in_admin'] = True
+            flash('Logged in successfully!', 'success')
+            return redirect(url_for('admin'))
+        else:
+            print("Password MISMATCH!")
+            flash('Invalid password', 'danger')
+            return render_template('admin.html', logged_in=False)
+    
+    if not session.get('logged_in_admin'):
+        print("Not logged in. Rendering login form.")
+        return render_template('admin.html', logged_in=False)
+    else:
+        print("Already logged in. Rendering full admin panel.")
+        return render_template('admin.html', logged_in=True)
+        
 app = Flask(__name__)
 # ⭐⭐ Fondamentale: Imposta la chiave segreta per le sessioni da Config ⭐⭐
 app.secret_key = Config.SECRET_KEY
